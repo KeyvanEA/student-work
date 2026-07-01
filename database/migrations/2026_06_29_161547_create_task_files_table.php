@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('task_files', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('task_id')
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->string('file_path');
             $table->timestamps();
         });
     }
