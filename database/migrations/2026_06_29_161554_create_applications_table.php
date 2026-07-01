@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('applications', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('task_id')->constrained()->cascadeOnDelete();
+            $table->unique(['user_id', 'task_id']);
+            $table->text('description');
+            $table->enum('status', ['pending','contacted', 'accepted', 'rejected'])->default('pending');
             $table->timestamps();
         });
     }
