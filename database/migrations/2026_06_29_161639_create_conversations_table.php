@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('conversations', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('application_id')->constrained()->cascadeOnDelete()->unique();
+            $table->enum('status', ['open','closed'])->default('open');
             $table->timestamps();
         });
     }

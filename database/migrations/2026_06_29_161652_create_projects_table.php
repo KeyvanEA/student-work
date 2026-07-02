@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('application_id')->constrained()->cascadeOnDelete()->unique();
+            $table->enum('status', ['in_progress', 'submitted', 'revision_requested','completed', 'cancelled','disputed'
+            ])->default('in_progress');
+            $table->integer('amount');
+            $table->enum('payment_status', ['unpaid', 'paid'])->default('unpaid');
+            $table->dateTime('deadline');
+            $table->dateTime('started_at');
+            $table->dateTime('completed_at')->nullable();
             $table->timestamps();
         });
     }
