@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('student_number')->unique();
             $table->string('field_of_study');
             $table->string('university_name');
-            $table->text('bio');
+            $table->text('bio')->nullable();
             $table->string('email')->unique()->nullable();
             $table->string('avatar')->nullable();
             $table->string('resume_file')->nullable();
