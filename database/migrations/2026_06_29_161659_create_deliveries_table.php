@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('deliveries', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('project_id')->constrained()->cascadeOnDelete();
+            $table->text('description');
+            $table->enum('status', ['pending', 'accepted','rejected'])->default('pending');
             $table->timestamps();
         });
     }

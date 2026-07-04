@@ -13,6 +13,19 @@ return new class extends Migration
     {
         Schema::create('complaints', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('project_id')
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->foreignId('user_id')
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->foreignId('delivery_id')->nullable()
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->string('title');
+            $table->text('description');
+            $table->enum('status', ['pending', 'accepted', 'rejected'])->default('pending');
+            $table->text('admin_response')->nullable();
             $table->timestamps();
         });
     }
