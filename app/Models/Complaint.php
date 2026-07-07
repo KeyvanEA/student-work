@@ -3,8 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Complaint extends Model
 {
-    //
+    public function project():BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function user():BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function delivery():BelongsTo
+    {
+        return $this->belongsTo(Delivery::class);
+    }
 }
