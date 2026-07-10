@@ -26,4 +26,9 @@ class Task extends Model
     {
         return $this->hasMany(Application::class);
     }
+
+    public function skills():belongsToMany
+    {
+        return $this->belongsToMany(Skill::class);
+    }
 }
