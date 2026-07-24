@@ -15,12 +15,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['full_name',
+    'mobile',
+    'email',
+    'student_number',
+    'field_of_study',
+    'university_name',
+    'bio',
+    'avatar',
+    'resume_file',
+    'is_active',])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable,HasApiTokens;
+
+
+
     public function skills(): BelongsToMany
     {
         return $this->belongsToMany(Skill::class);
@@ -59,11 +71,31 @@ class User extends Authenticatable
     {
         return $this->hasMany(Notification::class);
     }
+
+    public function isProfileCompleted(): bool
+    {
+        foreach ([
+                     'full_name',
+                     'student_number',
+                     'field_of_study',
+                     'university_name',
+                 ] as $field) {
+
+            if (blank($this->{$field})) {
+                return false;
+            }
+        }
+
+        return true;
+
+    }
+
     /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
      */
+
     protected function casts(): array
     {
         return [
