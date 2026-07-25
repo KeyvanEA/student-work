@@ -9,6 +9,17 @@ use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
+    public function show(Request $request)
+    {
+        $user = $request->user();
+
+        $user->load('skills');
+
+        return response()->json([
+            'user' => $user,
+        ], 200);
+
+    }
     public function update(UpdateProfileRequest $request)
     {
 
