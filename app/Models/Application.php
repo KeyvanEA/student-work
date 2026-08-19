@@ -9,6 +9,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Application extends Model
 {
+    protected $fillable = [
+        'task_id',
+        'user_id',
+        'description',
+        'status',
+    ];
     public function user():BelongsTo
     {
         return $this->belongsTo(User::class);

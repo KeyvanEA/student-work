@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Delivery extends Model
 {
+    protected $fillable = ['description',
+        'files',
+        'project_id',
+        'submitted_at',
+        'rejection_reason',
+        ];
     public function project():belongsTo
     {
         return $this->belongsTo(Project::class);

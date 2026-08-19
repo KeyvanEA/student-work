@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class TaskFile extends Model
 {
+    protected $fillable = ['task_id', 'file_path'];
     public function task():BelongsTo
     {
         return $this->belongsTo(Task::class);

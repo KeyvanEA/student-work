@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Project extends Model
 {
+    protected $fillable = ['amount', 'deadline','started_at'];
     public function application():BelongsTo
     {
         return $this->belongsTo(Application::class);

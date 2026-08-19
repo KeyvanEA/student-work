@@ -8,6 +8,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 class Task extends Model
 {
+    protected $fillable = [
+        'title',
+        'description',
+        'budget',
+        'deadline',
+        'category_id',
+        'status',
+    ];
     public function category():BelongsTo
     {
         return $this->belongsTo(Category::class);
