@@ -102,19 +102,17 @@ class DeliveryController extends Controller
             ->where('status', 'rejected')
             ->count();
         if ($rejectedCount >= 3) {
-            return response()->json(['message' => 'شما تعداد مجاز رد کردن این تحویل پروژه را گذرانده اید. در صورت عدم برآورده شدن نیاز تسک، برای ادمین شکایت ثبت کنید']);
+            return response()->json(['message' => 'شما تعداد مجاز رد کردن این تحویل پروژه را گذرانده اید. در صورت عدم برآورده شدن نیاز تسک، برای ادمین شکایت ثبت کنید'],422);
         }
         try {
             DB::beginTransaction();
-            $delivery->update([
-                'status' => 'rejected',
-                'rejection_reason' => $request->validated('rejection_reason'),
-            ]);
+            $delivery->status = 'rejected';
+            $delivery->rejection_reason = $request->validated('rejection_reason');
+            $delivery->save();
             $project->status = 'revision_requested';
             $project->save();
             DB::commit();
             return response()->json(['message'=>'شما این تحویل را با موفقیت رد کردید. منتظر تحویل بعدی باشید.'], 200);
-
         }
         catch (\Exception $exception){
             DB::rollBack();
@@ -131,5 +129,36 @@ class DeliveryController extends Controller
                 'message' => 'خطایی در رد کردن این تحویل رخ داد. لطفاً دوباره تلاش کنید.'
             ], 500);
         }
+    }
+    public function show(Request $request, Delivery $delivery)
+    {
+        $user = $request->user();
+        $application = $delivery->project->application;
+        $task = $application->task;
+        if ($user->id !== $task->user_id && $user->id !== $application->user_id) {
+            return response()->json([
+                'message' => 'شما دسترسی لازم برای مشاهده این تحویل پروژه را ندارید'
+            ], 403);
+        }
+        $delivery->load('files');
+        return response()->json([
+            'delivery' => [
+                'id' => $delivery->id,
+                'description' => $delivery->description,
+                'status' => $delivery->status,
+                'submitted_at' => $delivery->submitted_at,
+                'edit_count' => $delivery->edit_count,
+                'files' => $delivery->files->map(function ($file) {
+                    return [
+                        'id' => $file->id,
+                        'original_name' => $file->original_name,
+                        'mime_type' => $file->mime_type,
+                        'size' => $file->size,
+                        'preview_url' => '',
+            ];
+                }),
+            ],
+        ]);
+
     }
 }

@@ -30,7 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/applications/{application}/accept', [ApplicationController::class, 'accept']);
     Route::get('/projects/{project}', [ProjectController::class, 'show']);
     Route::post('/projects/{project}/deliveries', [DeliveryController::class, 'store']);
-    Route::patch('deliveries/{delivery}/reject', [DeliveryController::class, 'reject']);
+    Route::get('/deliveries/{delivery}', [DeliveryController::class, 'show']);
+    Route::patch('/deliveries/{delivery}/reject', [DeliveryController::class, 'reject']);
 });
 Route::get('/tasks', [TaskController::class, 'index']);
 Route::get('/tasks/{id}', [TaskController::class, 'show']);

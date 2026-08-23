@@ -31,4 +31,10 @@ class RejectDeliveryRequest extends FormRequest
                 ]
         ];
     }
+    public function messages(){
+        return ['rejection_reason.required' => 'برای رد کردن باید یک دلیل یا اصلاحیه لازم را ذکر کنید.',
+                'rejection_reason.min' => 'دلیل شما باید حداقل 10 کاراکتر داشته باشد',
+                'rejection_reason.max' => 'دلیل شما باید حداکثر 5000 کاراکتر داشته باشد'
+                ];
+    }
 }
