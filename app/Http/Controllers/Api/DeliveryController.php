@@ -54,7 +54,6 @@ class DeliveryController extends Controller
                 foreach ($validatedData['files'] as $file) {
                     $filePath =  $file->store("deliveries/{$delivery->id}/attachments");
                     $uploadedFiles[] = $filePath;
-//                    throw new \Exception('Transaction Test');
                     $delivery->files()->create([
                         'file_path' => $filePath,
                         'original_name' => $file->getClientOriginalName(),

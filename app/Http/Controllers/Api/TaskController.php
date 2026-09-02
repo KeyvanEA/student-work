@@ -37,7 +37,6 @@ class TaskController extends Controller
                 foreach ($request->file('files') as $file){
                     $filePath =  $file->store("tasks/{$task->id}/attachments");
                     $uploadedFiles[] = $filePath;
-//                    throw new \Exception('Transaction Test');
                     $task->files()->create([
                         'file_path'=> $filePath,
                     ]);
