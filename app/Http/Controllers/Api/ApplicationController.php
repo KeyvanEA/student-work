@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ApplicationRequest;
 use App\Models\Application;
+use App\Models\ApplicationFile;
 use App\Models\Task;
 use http\Env\Response;
 use Illuminate\Http\Request;
@@ -113,8 +114,11 @@ class ApplicationController extends Controller
             'files:id,application_id,file_path',
             'user.skills:id,name',
         ]);
-        $application->files->transform(function ($file) {
-            $file->download_url = Storage::url($file->file_path);
+        $application->files->transform(function ($file) use ($application) {
+            $file->download_url = route('applications.files.download', [
+                'application' => $application->id,
+                'file' => $file->id,
+            ]);
             return $file;
         });
 
@@ -122,6 +126,24 @@ class ApplicationController extends Controller
             'application' => $application,
         ], 200);
 
+    }
+
+    public function downloadFile(Request $request, Application $application, ApplicationFile $file)
+    {
+        $user = $request->user();
+        if ($user->id !== $application->task->user_id && $user->id !== $application->user_id) {
+            return response()->json(['message' => 'دسترسی دانلود این فایل را ندارید'], 403);
+        }
+        if ($file->application_id !== $application->id) {
+            return response()->json(['message' => 'فایل موردنظر پیدا نشد.'], 404);
+        }
+        if (!Storage::exists($file->file_path)) {
+            return response()->json(['message' => 'فایل موردنظر پیدا نشد.'], 404);
+        }
+
+        return response(Storage::get($file->file_path), 200)
+            ->header('Content-Type', Storage::mimeType($file->file_path) ?: 'application/octet-stream')
+            ->header('Content-Disposition', 'attachment; filename="' . basename($file->file_path) . '"');
     }
 
     public function accept(Request $request, Application $application)

@@ -90,14 +90,31 @@ class TaskController extends Controller
             ])
             ->findOrFail($id);
 
-        $task->files->transform(function ($file) {
-            $file->download_url = Storage::url($file->file_path);
+        $task->files->transform(function ($file) use ($task) {
+            $file->download_url = route('tasks.files.download', [
+                'task' => $task->id,
+                'file' => $file->id,
+            ]);
             return $file;
         });
 
         return response()->json([
             'task' => $task,
         ], 200);
+    }
+
+    public function downloadFile(Request $request, Task $task, TaskFile $file)
+    {
+        if ($file->task_id !== $task->id) {
+            return response()->json(['message' => 'فایل موردنظر پیدا نشد.'], 404);
+        }
+        if (!Storage::exists($file->file_path)) {
+            return response()->json(['message' => 'فایل موردنظر پیدا نشد.'], 404);
+        }
+
+        return response(Storage::get($file->file_path), 200)
+            ->header('Content-Type', Storage::mimeType($file->file_path) ?: 'application/octet-stream')
+            ->header('Content-Disposition', 'attachment; filename="' . basename($file->file_path) . '"');
     }
 
     public function cancel(Request $request, Task $task)

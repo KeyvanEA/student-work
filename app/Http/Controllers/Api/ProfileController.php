@@ -20,6 +20,19 @@ class ProfileController extends Controller
         ], 200);
 
     }
+    public function downloadResume(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user->resume_file || !Storage::exists($user->resume_file)) {
+            return response()->json(['message' => 'رزومه‌ای برای شما ثبت نشده است.'], 404);
+        }
+
+        return response(Storage::get($user->resume_file), 200)
+            ->header('Content-Type', Storage::mimeType($user->resume_file) ?: 'application/pdf')
+            ->header('Content-Disposition', 'attachment; filename="' . basename($user->resume_file) . '"');
+    }
+
     public function update(UpdateProfileRequest $request)
     {
 

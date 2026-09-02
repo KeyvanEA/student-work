@@ -15,6 +15,7 @@ Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum')
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::patch('/profile' , [ProfileController::class, 'update'])->middleware('auth:sanctum');
+    Route::get('/profile/resume', [ProfileController::class, 'downloadResume']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -27,6 +28,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tasks/{task}/applications', [ApplicationController::class, 'store']);
     Route::get('/tasks/{task}/applications', [ApplicationController::class, 'index']);
     Route::get('/applications/{application}', [ApplicationController::class, 'show']);
+    Route::get('/tasks/{task}/files/{file}/download', [TaskController::class, 'downloadFile'])->name('tasks.files.download');
+    Route::get('/applications/{application}/files/{file}/download', [ApplicationController::class, 'downloadFile'])->name('applications.files.download');
     Route::patch('/applications/{application}/accept', [ApplicationController::class, 'accept']);
     Route::patch('/applications/{application}/reject', [ApplicationController::class, 'reject']);
     Route::get('/projects/{project}', [ProjectController::class, 'show']);
