@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ApplicationController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DeliveryController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProjectController;
@@ -22,6 +23,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile/skills', [SkillController::class, 'update']);
 });
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/users/me/tasks', [TaskController::class, 'myTasks']);
+    Route::get('/users/me/applications', [ApplicationController::class, 'myApplications']);
+    Route::get('/projects', [ProjectController::class, 'index']);
+    Route::get('/projects/{project}/deliveries', [DeliveryController::class, 'index']);
     Route::patch('/tasks/{task}/cancel', [TaskController::class, 'cancel']);
     Route::post('/tasks', [TaskController::class, 'store']);
     Route::post('/tasks/{task}/applications', [ApplicationController::class, 'store']);
@@ -39,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/projects/{project}/payment', [ProjectController::class, 'payment']);
 
 });
+Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/tasks', [TaskController::class, 'index']);
 Route::get('/tasks/{id}', [TaskController::class, 'show']);
 

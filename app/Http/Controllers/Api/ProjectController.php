@@ -12,6 +12,31 @@ use Illuminate\Support\Facades\Storage;
 
 class ProjectController extends Controller
 {
+    public function index(Request $request)
+    {
+        $user = $request->user();
+
+        $projects = Project::query()
+            ->where(function ($query) use ($user) {
+                $query->whereHas('application', function ($application) use ($user) {
+                    $application->where('user_id', $user->id);
+                })
+                    ->orWhereHas('application.task', function ($task) use ($user) {
+                        $task->where('user_id', $user->id);
+                    });
+            })
+            ->with([
+                'application:id,user_id,task_id',
+                'application.user:id,full_name',
+                'application.task:id,title,user_id',
+                'application.task.user:id,full_name',
+            ])
+            ->latest()
+            ->paginate(10);
+
+        return response()->json(['projects' => $projects], 200);
+    }
+
     public function show(Project $project , Request $request)
     {
         $user = $request->user();

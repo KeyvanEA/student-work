@@ -100,6 +100,21 @@ class ApplicationController extends Controller
             ->paginate(10);
         return response()->json(['applications' => $applications],200);
     }
+    public function myApplications(Request $request)
+    {
+        $applications = $request->user()
+            ->applications()
+            ->select(['id', 'user_id', 'task_id', 'status', 'description', 'created_at'])
+            ->with([
+                'task:id,user_id,title,budget,status',
+                'task.user:id,full_name',
+            ])
+            ->latest()
+            ->paginate(10);
+
+        return response()->json(['applications' => $applications], 200);
+    }
+
     public function show(Request $request, Application $application)
     {
         $user = $request->user();

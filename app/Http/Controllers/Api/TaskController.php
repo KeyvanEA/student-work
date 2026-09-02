@@ -78,6 +78,21 @@ class TaskController extends Controller
         ], 200);
     }
 
+    public function myTasks(Request $request)
+    {
+        $tasks = $request->user()
+            ->tasks()
+            ->select(['id', 'user_id', 'category_id', 'title', 'budget', 'deadline', 'status', 'created_at'])
+            ->with(['category:id,name'])
+            ->withCount('applications')
+            ->latest()
+            ->paginate(10);
+
+        return response()->json([
+            'tasks' => $tasks,
+        ], 200);
+    }
+
     public function show($id)
     {
 

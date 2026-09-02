@@ -17,6 +17,43 @@ use Illuminate\Support\Facades\Storage;
 
 class DeliveryController extends Controller
 {
+    public function index(Request $request, Project $project)
+    {
+        $user = $request->user();
+        $application = $project->application;
+        $task = $application->task;
+
+        if ($user->id !== $task->user_id && $user->id !== $application->user_id) {
+            return response()->json([
+                'message' => 'شما دسترسی لازم برای مشاهده تحویل‌های این پروژه را ندارید'
+            ], 403);
+        }
+
+        $deliveries = $project->deliveries()
+            ->with('files:id,delivery_id,original_name,mime_type,size')
+            ->latest()
+            ->paginate(10);
+
+        $deliveries->getCollection()->transform(function ($delivery) {
+            $delivery->files->transform(function ($file) use ($delivery) {
+                $file->preview_url = route('deliveries.files.preview', [
+                    'delivery' => $delivery->id,
+                    'file' => $file->id,
+                ]);
+                $file->download_url = route('deliveries.files.download', [
+                    'delivery' => $delivery->id,
+                    'file' => $file->id,
+                ]);
+
+                return $file;
+            });
+
+            return $delivery;
+        });
+
+        return response()->json(['deliveries' => $deliveries], 200);
+    }
+
     public function store(Project $project,StoreDeliveryRequest $storeDelivery)
     {
         $user = $storeDelivery->user();
