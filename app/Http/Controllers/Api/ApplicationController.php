@@ -103,7 +103,7 @@ class ApplicationController extends Controller
     public function show(Request $request, Application $application)
     {
         $user = $request->user();
-        if ($user->id !== $application->task->user_id)
+        if ($user->id !== $application->task->user_id && $user->id !== $application->user_id)
         {
             return response()->json(['message'=>'دسترسی دیدن این درخواست همکاری را ندارید'],403);
         }
@@ -157,13 +157,17 @@ class ApplicationController extends Controller
                 ->where('id', '!=', $application->id)
                 ->update(['status'=>'rejected']);
             $task->update(['status'=>'assigned']);
-            $application->project()->create([
+            $project = $application->project()->create([
                 'amount' => $task->budget,
                 'deadline' => $task->deadline,
                 'started_at' => now(),
             ]);
             DB::commit();
-            return response()->json(['message'=>'این درخواست همکاری برای تسک شما انتخاب شد'],200);
+            return response()->json([
+                'message' => 'این درخواست همکاری برای تسک شما انتخاب شد',
+                'project_id' => $project->id,
+                'project' => $project,
+            ],200);
         }
         catch (\Exception $exception){
             DB::rollBack();

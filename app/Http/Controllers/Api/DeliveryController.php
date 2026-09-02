@@ -157,13 +157,28 @@ class DeliveryController extends Controller
             ], 403);
         }
         $delivery->load('files');
+        $project = $delivery->project;
+        $isEmployer = $user->id === $task->user_id;
+
+        // همان قانونی که download() اعمال می‌کند: کارجو همیشه، کارفرما فقط بعد از پرداخت.
+        $canDownload = !$isEmployer || $project->payment_status === 'paid';
+
         return response()->json([
             'delivery' => [
                 'id' => $delivery->id,
+                'project_id' => $delivery->project_id,
                 'description' => $delivery->description,
                 'status' => $delivery->status,
+                'rejection_reason' => $delivery->rejection_reason,
                 'submitted_at' => $delivery->submitted_at,
                 'edit_count' => $delivery->edit_count,
+                'viewer_role' => $isEmployer ? 'employer' : 'worker',
+                'can_download' => $canDownload,
+                'project' => [
+                    'id' => $project->id,
+                    'status' => $project->status,
+                    'payment_status' => $project->payment_status,
+                ],
                 'files' => $delivery->files->map(function ($file) use ($delivery) {
                     return [
                         'id' => $file->id,
@@ -171,6 +186,10 @@ class DeliveryController extends Controller
                         'mime_type' => $file->mime_type,
                         'size' => $file->size,
                         'preview_url' => route('deliveries.files.preview', [
+                            'delivery' => $delivery->id,
+                            'file' => $file->id,
+                        ]),
+                        'download_url' => route('deliveries.files.download', [
                             'delivery' => $delivery->id,
                             'file' => $file->id,
                         ]),
