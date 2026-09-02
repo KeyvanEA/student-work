@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ProjectController extends Controller
@@ -23,7 +25,6 @@ class ProjectController extends Controller
         $project->load([
             'application:id,description,user_id,task_id',
             'application.user:id,full_name,avatar',
-
             'application.task:id,title,description,user_id,category_id',
             'application.task.user:id,full_name,avatar',
             'application.task.category:id,name',
@@ -37,4 +38,51 @@ class ProjectController extends Controller
 
         return response()->json(['project' => $project],200);
     }
+    public function payment(Project $project, Request $request)
+    {
+        $user = $request->user();
+        $task = $project->application->task;
+        if ($user->id !== $task->user_id) {
+            return response()->json(['message' => 'شما دسترسی این عملیات را ندارید'],403);
+        }
+       if ($project->status !== 'completed') {
+           return response()->json(['message' => 'این پروژه تکمیل نشده است.'],422);
+       }
+       if ($project->payment_status === 'paid') {
+           return response()->json(['message' => 'شما یک بار دستمزد این پروژه را پرداخت کرده اید'],409);
+       }
+        try {
+            DB::beginTransaction();
+            $project = Project::where('id', $project->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            if ($project->status !== 'completed') {
+                DB::rollBack();
+                return response()->json(['message' => 'این پروژه تکمیل نشده است.'],422);
+            }
+            if ($project->payment_status === 'paid') {
+                DB::rollBack();
+                return response()->json(['message' => 'شما یک بار دستمزد این پروژه را پرداخت کرده اید'],409);
+            }
+            $project->payment_status = 'paid';
+            $project->save();
+            DB::commit();
+            return response()->json(['message' => 'پرداخت دستمزد پروژه با موفقیت ثبت شد.'],200);
+        }
+       catch (\Exception $exception) {
+           DB::rollBack();
+           Log::error('payment Failed', [
+               'user_id' => $user->id,
+               'project_id' => $project->id,
+               'message' => $exception->getMessage(),
+               'file' => $exception->getFile(),
+               'line' => $exception->getLine(),
+               'trace' => $exception->getTraceAsString(),
+           ]);
+           return response()->json([
+               'message' => 'خطایی در پرداخت دستمزد رخ داد. لطفاً دوباره تلاش کنید.'
+           ], 500);
+       }
+    }
+
 }

@@ -181,4 +181,54 @@ class ApplicationController extends Controller
             ], 500);
         }
     }
+    public function reject(Request $request, Application $application)
+    {
+        $user = $request->user();
+        $task = $application->task;
+        if ($user->id !== $task->user_id){
+            return response()->json(['message'=>'دسترسی این عملیات را ندارید.'],403);
+        }
+        if($task->status !== 'open'){
+            return response()->json(['message'=>'این تسک باز نیست و نمیتوان درخواست همکاری روی آن رد کرد'],409);
+        }
+        if($application->status !== 'pending' && $application->status !== 'contacted'){
+            return response()->json(['message'=> 'این درخواست همکاری در حالت انتظار برای رد نمی باشد.'],409);
+        }
+        try {
+            DB::beginTransaction();
+            $task = Task::where('id', $application->task_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $application = Application::where('id', $application->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            if($task->status !== 'open'){
+                DB::rollBack();
+                return response()->json(['message'=>'این تسک باز نیست و نمیتوان درخواست همکاری روی آن رد کرد'],409);
+            }
+            if($application->status !== 'pending' && $application->status !== 'contacted'){
+                DB::rollBack();
+                return response()->json(['message'=> 'این درخواست همکاری در حالت انتظار برای رد نمی باشد.'],409);
+            }
+            $application->update(['status'=>'rejected']);
+            throw new \Exception('Transaction Test');
+            DB::commit();
+            return response()->json(['message'=>'این درخواست همکاری با موفقیت رد شد.'],200);
+        }
+        catch (\Exception $exception){
+            DB::rollBack();
+            Log::error('reject Application Failed', [
+                'user_id' => $user->id,
+                'application_id'=> $application->id,
+                'task_id' => $task->id,
+                'message' => $exception->getMessage(),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+                'trace' => $exception->getTraceAsString(),
+            ]);
+            return response()->json([
+                'message' => 'خطایی در رد کردن درخواست همکاری رخ داد. لطفاً دوباره تلاش کنید.'
+            ], 500);
+        }
+    }
 }

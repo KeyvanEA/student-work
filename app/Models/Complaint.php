@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Complaint extends Model
 {
@@ -17,8 +18,8 @@ class Complaint extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function delivery():BelongsTo
+    public function files():HasMany
     {
-        return $this->belongsTo(Delivery::class);
+        return $this->hasMany(ComplaintFile::class);
     }
 }

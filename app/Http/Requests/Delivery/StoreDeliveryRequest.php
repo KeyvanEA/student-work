@@ -39,7 +39,7 @@ class StoreDeliveryRequest extends FormRequest
             'files.*' => [
                 'required',
                 'file',
-                'mimes:jpg,jpeg,png,webp, pdf,doc,docx,xls,xlsx,zip,rar',
+                'mimes:jpg,jpeg,png,webp,pdf,doc,docx,xls,xlsx,zip,rar',
                 'max:20240',
             ],
         ];
