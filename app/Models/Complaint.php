@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Complaint extends Model
 {
+    protected $fillable = ['title', 'description', 'project_id', 'user_id','files'];
     public function project():BelongsTo
     {
         return $this->belongsTo(Project::class);

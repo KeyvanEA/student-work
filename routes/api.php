@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ApplicationController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ComplaintController;
 use App\Http\Controllers\Api\DeliveryController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProjectController;
@@ -37,6 +38,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/deliveries/{delivery}/reject', [DeliveryController::class, 'reject']);
     Route::patch('/deliveries/{delivery}/accept', [DeliveryController::class, 'accept']);
     Route::patch('/projects/{project}/payment', [ProjectController::class, 'payment']);
+    Route::post('/projects/{project}/complaints', [ComplaintController::class, 'store']);
+    Route::get('/complaints', [ComplaintController::class, 'index']);
+    Route::get('/complaints/{complaint}', [ComplaintController::class, 'show']);
 
 });
 Route::get('/tasks', [TaskController::class, 'index']);

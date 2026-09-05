@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreComplaintRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'title' => ['required', 'string', 'max:255', 'min:5',],
+            'description' => ['required', 'string', 'max:5000', 'min:10'],
+            'files' => ['nullable', 'array', 'max:5'],
+            'files.*' => [
+                'nullable',
+                'file',
+                'mimes:jpg,jpeg,png,webp,pdf,doc,docx,xls,xlsx,zip,rar',
+                'max:20240',
+            ],
+        ];
+    }
+}

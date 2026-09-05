@@ -211,7 +211,7 @@ class ApplicationController extends Controller
                 return response()->json(['message'=> 'این درخواست همکاری در حالت انتظار برای رد نمی باشد.'],409);
             }
             $application->update(['status'=>'rejected']);
-            throw new \Exception('Transaction Test');
+
             DB::commit();
             return response()->json(['message'=>'این درخواست همکاری با موفقیت رد شد.'],200);
         }
