@@ -47,7 +47,5 @@ class ProfileController extends Controller
             'message' => 'پروفایل شما با موفقیت بروزرسانی شد.',
             'user' => $user,
         ], 200);
-
-
     }
 }

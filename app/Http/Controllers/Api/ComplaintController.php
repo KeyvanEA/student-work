@@ -130,4 +130,33 @@ class ComplaintController extends Controller
             'complaint' => $complaint,
         ], 200);
     }
+    public function related(Request $request)
+    {
+        $user = $request->user();
+
+        $complaints = Complaint::query()
+            ->select([
+                'id',
+                'project_id',
+                'title',
+                'status',
+                'created_at',
+            ])
+            ->where('user_id', '!=', $user->id)
+            ->whereHas('project.application', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->orWhere(function ($query) use ($user) {
+                $query->where('user_id', '!=', $user->id)
+                    ->whereHas('project.application.task', function ($query) use ($user) {
+                        $query->where('user_id', $user->id);
+                    });
+            })
+            ->latest()
+            ->paginate(10);
+
+        return response()->json([
+            'complaints' => $complaints,
+        ], 200);
+    }
 }

@@ -7,6 +7,7 @@ use App\Http\Requests\Delivery\RejectDeliveryRequest;
 use App\Http\Requests\Delivery\StoreDeliveryRequest;
 use App\Models\Delivery;
 use App\Models\DeliveryFile;
+use App\Models\Notification;
 use App\Models\Project;
 use http\Env\Response;
 use Illuminate\Http\Request;
@@ -63,6 +64,12 @@ class DeliveryController extends Controller
                 }
             }
             DB::commit();
+            Notification::create([
+                'user_id' => $project->application->task->user_id,
+                'title' => 'تحویل پروژه جدید',
+                'message' => 'توسط کارجو دارید'.$project->application->task->title.'شما یک تحویل جدید برای',
+                'is_read' => false,
+            ]);
             return response()->json(['message'=>'شما پروژه خود را با موفقیت نحویل دادید. منتظر بررسی کارفرما بمانید.'], 201);
         }
         catch (\Exception $exception){
@@ -127,6 +134,12 @@ class DeliveryController extends Controller
             $project->status = 'revision_requested';
             $project->save();
             DB::commit();
+            Notification::create([
+                'user_id' => $project->application->user_id,
+                'title' => 'رد شدن تحویل پروژه',
+                'message' => 'توسط کارفرما رد شد.'.$project->application->task->title.' تحویل پروژه شما برای',
+                'is_read' => false,
+            ]);
             return response()->json(['message'=>'شما این تحویل را با موفقیت رد کردید. منتظر تحویل بعدی باشید.'], 200);
         }
         catch (\Exception $exception){
@@ -240,6 +253,12 @@ class DeliveryController extends Controller
             $project->completed_at = now();
             $project->save();
             DB::commit();
+            Notification::create([
+                'user_id' => $project->application->user_id,
+                'title' => 'تایید تحویل پروژه',
+                'message' => 'توسط کارفرما تایید شد.'.$project->application->task->title.' تحویل پروژه شما برای',
+                'is_read' => false,
+            ]);
             return response()->json(['message'=> 'شما این تحویل را با موفقیت تایید کردید. لطفا در اسرع وقت نسبت به پرداخت دستمزد کارجو اقدام فرمایید.'], 200);
         }
         catch (\Exception $exception){

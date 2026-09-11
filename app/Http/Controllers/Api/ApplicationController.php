@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ApplicationRequest;
 use App\Models\Application;
+use App\Models\Notification;
 use App\Models\Task;
 use http\Env\Response;
 use Illuminate\Http\Request;
@@ -49,7 +50,6 @@ class ApplicationController extends Controller
                 foreach ($validatedData['files'] as $file){
                     $filePath =  $file->store("applications/{$application->id}/attachments");
                     $uploadedFiles[] = $filePath;
-//                    throw new \Exception('Transaction Test');
                     $application->files()->create([
                         'file_path'=> $filePath,
                     ]);
@@ -100,10 +100,51 @@ class ApplicationController extends Controller
             ->paginate(10);
         return response()->json(['applications' => $applications],200);
     }
+    public function indexAll(Request $request)
+    {
+        $user = $request->user();
+        $type = $request->query('type');
+        if (!in_array($type, ['sent', 'received'])) {
+            return response()->json([
+                'message' => 'نوع درخواست همکاری نامعتبر است.'
+            ], 422);
+        }
+        $applications = Application::query()
+            ->select([
+                'id',
+                'user_id',
+                'task_id',
+                'status',
+                'description',
+                'created_at',
+            ]);
+
+        if ($type === 'sent') {
+            $applications->where('user_id', $user->id);
+        }
+
+        if ($type === 'received') {
+            $applications->whereHas('task', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            });
+        }
+
+        $applications = $applications
+            ->with([
+                'user:id,full_name,mobile,avatar',
+                'task:id,title,user_id',
+            ])
+            ->latest()
+            ->paginate(10);
+
+        return response()->json([
+            'applications' => $applications,
+        ], 200);
+    }
     public function show(Request $request, Application $application)
     {
         $user = $request->user();
-        if ($user->id !== $application->task->user_id)
+        if ($user->id !== $application->task->user_id && $user->id !== $application->user_id)
         {
             return response()->json(['message'=>'دسترسی دیدن این درخواست همکاری را ندارید'],403);
         }
@@ -141,7 +182,7 @@ class ApplicationController extends Controller
             DB::beginTransaction();
             $task = Task::where('id', $application->task_id)
                 ->lockForUpdate()
-            ->firstOrFail();
+                ->firstOrFail();
             $application = Application::findOrFail($application->id);
             if($task->status !== 'open'){
                 DB::rollBack();
@@ -163,6 +204,12 @@ class ApplicationController extends Controller
                 'started_at' => now(),
             ]);
             DB::commit();
+            Notification::create([
+                'user_id' => $application->user_id,
+                'title' => 'تایید درخواست همکاری',
+                'message' => 'توسط کارفرما تایید شد'.$task->title.'درخواست همکاری شما برای',
+                'is_read' => false,
+            ]);
             return response()->json(['message'=>'این درخواست همکاری برای تسک شما انتخاب شد'],200);
         }
         catch (\Exception $exception){
@@ -213,6 +260,12 @@ class ApplicationController extends Controller
             $application->update(['status'=>'rejected']);
 
             DB::commit();
+            Notification::create([
+                'user_id' => $application->user_id,
+                'title' => 'رد شدن درخواست همکاری',
+                'message' => 'توسط کارفرما رد شد'.$task->title.'درخواست همکاری شما برای',
+                'is_read' => false,
+            ]);
             return response()->json(['message'=>'این درخواست همکاری با موفقیت رد شد.'],200);
         }
         catch (\Exception $exception){
