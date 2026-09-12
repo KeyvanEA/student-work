@@ -78,6 +78,13 @@ class TaskController extends Controller
         ], 200);
     }
 
+    public function mine(Request $request)
+    {
+        $user = $request->user();
+        $tasks = Task::query()->where('user_id',$user->id)
+        ->select(['id', 'title', 'budget', 'deadline', 'status', 'created_at'])->latest()->paginate(10);
+        return response()->json(['tasks' => $tasks], 200);
+    }
     public function show($id)
     {
 
@@ -91,7 +98,7 @@ class TaskController extends Controller
             ->findOrFail($id);
 
         $task->files->transform(function ($file) {
-            $file->download_url = Storage::url($file->file_path);
+            $file->download_url = url(Storage::url($file->file_path));
             return $file;
         });
 

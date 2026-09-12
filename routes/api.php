@@ -31,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/tasks/{task}/cancel', [TaskController::class, 'cancel']);
     Route::post('/tasks', [TaskController::class, 'store']);
+    Route::get('tasks/mine',  [TaskController::class, 'mine']);
     Route::post('/tasks/{task}/applications', [ApplicationController::class, 'store']);
     Route::get('/tasks/{task}/applications', [ApplicationController::class, 'index']);
     Route::get('/applications/{application}', [ApplicationController::class, 'show']);
@@ -40,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/projects/{project}', [ProjectController::class, 'show']);
     Route::get('/projects', [ProjectController::class, 'index']);
     Route::post('/projects/{project}/deliveries', [DeliveryController::class, 'store']);
+    Route::get('/projects/{project}/deliveries', [DeliveryController::class, 'index']);
     Route::get('/deliveries/{delivery}', [DeliveryController::class, 'show']);
     Route::get('/deliveries/{delivery}/files/{file}/preview', [DeliveryController::class, 'preview'])->name('deliveries.files.preview');
     Route::get('/deliveries/{delivery}/files/{file}/download', [DeliveryController::class, 'download'])->name('deliveries.files.download');

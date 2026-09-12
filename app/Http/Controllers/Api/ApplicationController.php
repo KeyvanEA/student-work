@@ -155,7 +155,7 @@ class ApplicationController extends Controller
             'user.skills:id,name',
         ]);
         $application->files->transform(function ($file) {
-            $file->download_url = Storage::url($file->file_path);
+            $file->download_url = url(Storage::url($file->file_path));
             return $file;
         });
 
@@ -198,7 +198,7 @@ class ApplicationController extends Controller
                 ->where('id', '!=', $application->id)
                 ->update(['status'=>'rejected']);
             $task->update(['status'=>'assigned']);
-            $application->project()->create([
+            $project = $application->project()->create([
                 'amount' => $task->budget,
                 'deadline' => $task->deadline,
                 'started_at' => now(),
@@ -210,7 +210,8 @@ class ApplicationController extends Controller
                 'message' => 'توسط کارفرما تایید شد'.$task->title.'درخواست همکاری شما برای',
                 'is_read' => false,
             ]);
-            return response()->json(['message'=>'این درخواست همکاری برای تسک شما انتخاب شد'],200);
+            return response()->json(['message'=>'این درخواست همکاری برای تسک شما انتخاب شد'
+            ,'project' => $project],200);
         }
         catch (\Exception $exception){
             DB::rollBack();
@@ -224,7 +225,7 @@ class ApplicationController extends Controller
                 'trace' => $exception->getTraceAsString(),
             ]);
             return response()->json([
-                'message' => 'خطایی در انتخاب درخواست همکاری رخ داد. لطفاً دوباره تلاش کنید.'
+                'message' => 'خطایی در انتخاب درخواست همکاری رخ داد. لطفاً دوباره تلاش کنید.',
             ], 500);
         }
     }

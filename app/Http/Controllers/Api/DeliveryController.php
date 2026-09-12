@@ -192,6 +192,32 @@ class DeliveryController extends Controller
         ]);
 
     }
+
+    public function index(Request $request, Project $project)
+    {
+        $user = $request->user();
+        if (
+            $user->id !== $project->application->user_id &&
+            $user->id !== $project->application->task->user_id
+        ) {
+            return response()->json([
+                'message' => 'شما دسترسی به این عملیات را ندارید'
+            ], 403);
+        }
+        $deliveries = Delivery::query()->select(['id', 'description', 'status','submitted_at','rejection_reason','edit_count',])
+            ->where('project_id',$project->id)
+            ->where(function ($query) use ($user) {
+                $query->whereHas('project.application',function ($query) use ($user){
+                    $query->where('user_id',$user->id);
+
+                });
+                $query->orWhereHas('project.application.task',function ($query) use ($user){
+                    $query->where('user_id',$user->id);
+                });
+            })
+            ->latest()->paginate(10);
+        return response()->json(['deliveries' => $deliveries]);
+    }
     public function preview(Request $request,Delivery $delivery , DeliveryFile $file)
     {
         $user = $request->user();
