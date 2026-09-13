@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Api\ApplicationController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ComplaintController;
+use App\Http\Controllers\Admin\AdminComplaintController;
 use App\Http\Controllers\Api\DeliveryController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ProfileController;
@@ -16,6 +18,13 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::get('/admin/dashboard', [AdminDashboardController::class, 'index']);
+    Route::get('/admin/complaints',[AdminComplaintController::class, 'index']);
+    Route::get('/admin/complaints/{complaint}',[AdminComplaintController::class, 'show']);
+    Route::patch('/admin/complaints/{complaint}/review',[AdminComplaintController::class, 'review']);
+    Route::patch('/admin/complaints/{complaint}/resolve',[AdminComplaintController::class, 'resolve']);
+});
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/dashboard',[UserDashboardController::class, 'index']);
     Route::get('/profile', [ProfileController::class, 'show']);

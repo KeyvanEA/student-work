@@ -36,7 +36,9 @@ class UserDashboardController extends Controller
                 });
         })->count();
         $openTasks = Task::query()->where('user_id', $user->id)->where('status', 'open')->count();
+
         $sentApplications = Application::query()->where('user_id', $user->id)->where('status', 'pending')->count();
+
         $recivedApplications = Application::query()->whereHas('task', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })->where('status', 'pending')->count();

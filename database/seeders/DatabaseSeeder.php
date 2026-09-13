@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             SkillSeeder::class,
             UserSeeder::class,
             MvpScenarioSeeder::class,
+            AdminSeeder::class,
         ]);
 
 //        User::factory()->create([
