@@ -139,12 +139,6 @@ class AdminComplaintController extends Controller
     {
         $user = $request->user();
 
-        if ($complaint->status !== 'reviewing') {
-            return response()->json([
-                'message' => 'شکایت در حالت بررسی نمی‌باشد'
-            ], 422);
-        }
-
         try {
             DB::beginTransaction();
 
@@ -155,6 +149,19 @@ class AdminComplaintController extends Controller
             $project = Project::where('id', $complaint->project_id)
                 ->lockForUpdate()
                 ->firstOrFail();
+
+            $latestDelivery = $project->deliveries()
+                ->latest('id')
+                ->lockForUpdate()
+                ->first();
+
+            if (!$latestDelivery) {
+                DB::rollBack();
+
+                return response()->json([
+                    'message' => 'برای این پروژه هیچ تحویلی ثبت نشده است.'
+                ], 422);
+            }
 
             if ($complaint->status !== 'reviewing') {
                 DB::rollBack();
@@ -176,7 +183,6 @@ class AdminComplaintController extends Controller
 
             $application = $project->application;
             $task = $application->task;
-
             $isWorkerComplaint = $complaint->user_id === $application->user_id;
 
             if ($validated['decision'] === 'invalid') {
@@ -190,6 +196,11 @@ class AdminComplaintController extends Controller
                     : 'submitted';
 
                 $project->save();
+
+                $latestDelivery->status = $isWorkerComplaint
+                    ? 'rejected'
+                    : 'pending';
+                $latestDelivery->save();
 
                 $complainantMessage =
                     'شکایت شما توسط مدیریت بررسی شد و نامعتبر تشخیص داده شد. پروژه به روند قبلی خود بازگشت.';
@@ -221,8 +232,16 @@ class AdminComplaintController extends Controller
                     $project->status = $isWorkerComplaint
                         ? 'submitted'
                         : 'revision_requested';
-
                     $project->save();
+
+                    if ($isWorkerComplaint) {
+                        $latestDelivery->status = 'pending';
+                        $latestDelivery->rejection_reason = null;
+                    } else {
+                        $latestDelivery->status = 'rejected';
+                    }
+                    $latestDelivery->save();
+
 
                     $complainantMessage =
                         'شکایت شما توسط مدیریت بررسی شد و معتبر تشخیص داده شد. پروژه برای ادامه فرآیند وارد مرحله بعدی شد.';
