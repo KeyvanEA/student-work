@@ -15,6 +15,7 @@ class Task extends Model
         'deadline',
         'category_id',
         'status',
+        'rejection_reason',
     ];
     public function category():BelongsTo
     {

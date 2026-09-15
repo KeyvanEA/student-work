@@ -30,6 +30,8 @@ class TaskController extends Controller
                 'deadline',
                 'category_id',
             ]);
+            // تسک تازه ساخته‌شده منتشر نمی‌شود؛ اول باید ادمین آن را بررسی و تایید کند.
+            $taskData['status'] = 'pending';
             $task = $user->tasks()->create($taskData);
             $task->skills()->sync($validatedData['skills']);
 
@@ -46,7 +48,7 @@ class TaskController extends Controller
             }
             DB::commit();
             $task->load('skills','category','files');
-            return response()->json(['message' => 'تسک شما با موفقیت ثبت شد', 'task' => $task],201);
+            return response()->json(['message' => 'تسک شما با موفقیت ثبت شد و پس از بررسی و تایید ادمین منتشر می‌شود.', 'task' => $task],201);
         }
         catch (\Exception $exception){
             DB::rollBack();
@@ -85,7 +87,7 @@ class TaskController extends Controller
         ->select(['id', 'title', 'budget', 'deadline', 'status', 'created_at'])->latest()->paginate(10);
         return response()->json(['tasks' => $tasks], 200);
     }
-    public function show($id)
+    public function show(Request $request, $id)
     {
 
         $task = Task::query()
@@ -96,6 +98,17 @@ class TaskController extends Controller
                 'files:id,task_id,file_path',
             ])
             ->findOrFail($id);
+
+        // تسک در انتظار بررسی یا ردشده عمومی نیست؛ فقط صاحب تسک و ادمین آن را می‌بینند.
+        // این مسیر auth ندارد، پس کاربر باید از روی توکن sanctum شناسایی شود.
+        if (in_array($task->status, ['pending', 'rejected'], true)) {
+            $viewer = $request->user('sanctum');
+            $isOwner = $viewer && $viewer->id === $task->user_id;
+            $isAdmin = $viewer && $viewer->hasRole('admin');
+            if (!$isOwner && !$isAdmin) {
+                return response()->json(['message' => 'تسک مورد نظر یافت نشد.'], 404);
+            }
+        }
 
         $task->files->transform(function ($file) {
             $file->download_url = url(Storage::url($file->file_path));
