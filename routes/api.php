@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\ApplicationController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ComplaintController;
 use App\Http\Controllers\Admin\AdminComplaintController;
+use App\Http\Controllers\Admin\AdminTaskController;
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Api\DeliveryController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ProfileController;
@@ -24,6 +26,12 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/admin/complaints/{complaint}',[AdminComplaintController::class, 'show']);
     Route::patch('/admin/complaints/{complaint}/review',[AdminComplaintController::class, 'review']);
     Route::patch('/admin/complaints/{complaint}/resolve',[AdminComplaintController::class, 'resolve']);
+    Route::get('/admin/users',[AdminUserController::class, 'index']);
+    Route::delete('/admin/users/{user}',[AdminUserController::class, 'destroy']);
+    Route::get('/admin/tasks',[AdminTaskController::class, 'index']);
+    Route::get('/admin/tasks/{task}',[AdminTaskController::class, 'show']);
+    Route::patch('/admin/tasks/{task}/approve',[AdminTaskController::class, 'approve']);
+    Route::patch('/admin/tasks/{task}/reject',[AdminTaskController::class, 'reject']);
 });
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/dashboard',[UserDashboardController::class, 'index']);
